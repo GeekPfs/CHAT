@@ -127,6 +127,15 @@
                     if (change.type === 'added') {
                         var message = change.doc.data();
                         appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+
+                        // Delete message after 5 seconds if in the "messages" collection
+                        if (messagesRef.id === 'messages') {
+                            setTimeout(function() {
+                                messagesRef.doc(change.doc.id).delete().catch(function(error) {
+                                    console.error("Error deleting message:", error);
+                                });
+                            }, 5000); // 5 seconds in milliseconds
+                        }
                     }
                 });
             });
@@ -143,7 +152,7 @@
                 if (text.startsWith('/enter ')) {
                     var newCollection = text.split(' ')[1];
                     if (newCollection) {
-                        // Change the collection and stop deleting messages
+                        // Change the collection
                         messagesRef = db.collection(newCollection);
                         chatBox.innerHTML = ''; // Clear chat box
                         listenForMessages(); // Start listening to the new collection

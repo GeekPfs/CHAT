@@ -47,32 +47,6 @@
         #send-button:hover {
             background-color: green;
         }
-        .message {
-            margin-bottom: 10px;
-            padding: 5px;
-            background-color: #111;
-            border: 1px solid lime;
-            border-radius: 5px;
-            color: lime;
-            white-space: pre-wrap;
-            overflow-wrap: break-word;
-            position: relative;
-        }
-        .message::after {
-            content: '';
-            display: block;
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 0;
-            height: 100%;
-            border-left: 2px solid lime;
-            animation: typing 1s steps(40) forwards;
-        }
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
     </style>
 </head>
 <body>
@@ -107,18 +81,29 @@
         // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
 
+        // Function to simulate typing effect
+        function typeMessage(messageText, chatBox) {
+            var delay = 50; // Adjust typing speed here (milliseconds per character)
+            var i = 0;
+            var timer = setInterval(function() {
+                var messageElement = document.createElement('div');
+                messageElement.textContent = messageText.substring(0, i + 1);
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+                i++;
+                if (i === messageText.length) {
+                    clearInterval(timer);
+                }
+            }, delay);
+        }
+
         // Listen for new messages
         messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
             var chatBox = document.getElementById('chat-box');
             chatBox.innerHTML = ''; // Clear chat box
             snapshot.forEach(function(doc) {
                 var message = doc.data();
-                var messageElement = document.createElement('div');
-                messageElement.classList.add('message');
-                messageElement.textContent = message.text;
-                chatBox.appendChild(messageElement);
-                // Scroll to bottom of chat box
-                chatBox.scrollTop = chatBox.scrollHeight;
+                typeMessage(message.text, chatBox);
             });
         });
 

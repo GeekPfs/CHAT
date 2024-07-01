@@ -99,39 +99,130 @@
         var auth = firebase.auth();
         var db = firebase.firestore();
 
+        // Authenticate anonymously
+        auth.signInAnonymously().catch(function(error) {
+            console.error("Error signing in anonymously:", error);
+        });
+
         // Track online users in current collection
-        var presenceRef = db.collection('presence').doc(auth.currentUser.uid);
-        var onlineUsersRef = db.collection('presence');
-
-        // Set presence on connection
-        var isOfflineForDatabase = {
-            state: 'offline',
-            last_changed: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-
-        var isOnlineForDatabase = {
-            state: 'online',
-            last_changed: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-
-        firebase.auth().onAuthStateChanged(user => {
+        auth.onAuthStateChanged(user => {
             if (user) {
                 var uid = user.uid;
-                presenceRef.set(isOnlineForDatabase);
+                var presenceRef = db.collection('presence').doc(uid);
+                var onlineUsersRef = db.collection('presence');
 
-                // Remove the user from the online list when they disconnect.
+                // Set presence on connection
+                var isOfflineForDatabase = {
+                    state: 'offline',
+                    last_changed: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+
+                var isOnlineForDatabase = {
+                    state: 'online',
+                    last_changed: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+
+                // Set online status and handle disconnection
+                presenceRef.set(isOnlineForDatabase);
                 presenceRef.onDisconnect().set(isOfflineForDatabase);
+
+                // Update online users count
+                onlineUsersRef.where('state', '==', 'online').onSnapshot(snapshot => {
+                    document.getElementById('online-count').textContent = snapshot.size;
+                });
+
+                // Reference to the chat messages collection
+                var messagesRef = db.collection('messages');
+                var chatBox = document.getElementById('chat-box');
+                var unsubscribe = null; // Store the listener unsubscribe function
+
+                // Function to generate a color based on uid
+                function getColorFromUid(uid) {
+                    // Convert the full UID to an integer, and use it to generate a hue value (0-360)
+                    var hue = (parseInt(uid.replace(/\D/g, ''), 10) % 360);
+                    var color = 'hsl(' + hue + ', 70%, 50%)'; // Return an HSL color string
+                    console.log('UID:', uid, 'Color:', color); // Log UID and color to verify
+                    return color;
+                }
+
+                // Function to append a new message with typing animation
+                function appendMessageWithAnimation(messageText, uid) {
+                    var messageElement = document.createElement('div');
+                    messageElement.className = 'message';
+                    messageElement.style.color = getColorFromUid(uid); // Set text color based on uid
+                    chatBox.appendChild(messageElement);
+
+                    // Use Typed.js for typing animation
+                    var typed = new Typed(messageElement, {
+                        strings: [messageText],
+                        typeSpeed: 50, // Speed of typing in milliseconds
+                        showCursor: false // Hide the cursor
+                    });
+
+                    // Scroll to bottom of chat box
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+
+                // Listen for new messages
+                function listenForMessages() {
+                    // Unsubscribe from previous listener if it exists
+                    if (unsubscribe) {
+                        unsubscribe();
+                    }
+
+                    // Start a new listener
+                    unsubscribe = messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
+                        snapshot.docChanges().forEach(function(change) {
+                            if (change.type === 'added') {
+                                var message = change.doc.data();
+                                appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+
+                                // Delete message after 5 seconds if in the "messages" collection
+                                if (messagesRef.id === 'messages') {
+                                    setTimeout(function() {
+                                        messagesRef.doc(change.doc.id).delete().catch(function(error) {
+                                            console.error("Error deleting message:", error);
+                                        });
+                                    }, 5000); // 5 seconds in milliseconds
+                                }
+                            }
+                        });
+                    });
+                }
+
+                // Start listening for messages
+                listenForMessages();
+
+                // Send a new message on Enter key press
+                document.getElementById('message-input').addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        var messageInput = document.getElementById('message-input');
+                        var text = messageInput.value.trim();
+                        if (text.startsWith('/enter ')) {
+                            var newCollection = text.split(' ')[1];
+                            if (newCollection) {
+                                // Change the collection
+                                messagesRef = db.collection(newCollection);
+                                chatBox.innerHTML = ''; // Clear chat box
+                                listenForMessages(); // Start listening to the new collection
+                                messageInput.value = ''; // Clear input
+                            }
+                        } else if (text) {
+                            // Add message with uid
+                            messagesRef.add({
+                                text: text,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                uid: auth.currentUser.uid // Include uid in message data
+                            }).then(function(docRef) {
+                                messageInput.value = ''; // Clear input
+                            }).catch(function(error) {
+                                console.error("Error adding message: ", error);
+                            });
+                        }
+                    }
+                });
             }
         });
-
-        // Update online users count
-        onlineUsersRef.where('state', '==', 'online').onSnapshot(snapshot => {
-            document.getElementById('online-count').textContent = snapshot.size;
-        });
-
-        // Remaining chat functionality as per your existing code...
-        // (appendMessageWithAnimation function, listenForMessages function, etc.)
-        // Insert your existing chat functionality here...
 
     </script>
 </body>

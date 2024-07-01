@@ -47,6 +47,32 @@
         #send-button:hover {
             background-color: green;
         }
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #111;
+            border: 1px solid lime;
+            border-radius: 5px;
+            color: lime;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            position: relative;
+        }
+        .message::after {
+            content: '';
+            display: block;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            border-left: 2px solid lime;
+            animation: typing 1s steps(40) forwards;
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -58,7 +84,7 @@
     <script>
         // Your web app's Firebase configuration
         var firebaseConfig = {
-            apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
+            apiKey: "Sua chave API",
             authDomain: "chat-8823c.firebaseapp.com",
             databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
             projectId: "chat-8823c",
@@ -88,8 +114,11 @@
             snapshot.forEach(function(doc) {
                 var message = doc.data();
                 var messageElement = document.createElement('div');
+                messageElement.classList.add('message');
                 messageElement.textContent = message.text;
                 chatBox.appendChild(messageElement);
+                // Scroll to bottom of chat box
+                chatBox.scrollTop = chatBox.scrollHeight;
             });
         });
 

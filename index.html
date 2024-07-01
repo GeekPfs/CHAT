@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Typed.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
     <style>
         body {
             font-family: monospace;
@@ -81,29 +83,22 @@
         // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
 
-        // Function to simulate typing effect
-        function typeMessage(messageText, chatBox) {
-            var delay = 50; // Adjust typing speed here (milliseconds per character)
-            var i = 0;
-            var timer = setInterval(function() {
-                var messageElement = document.createElement('div');
-                messageElement.textContent = messageText.substring(0, i + 1);
-                chatBox.appendChild(messageElement);
-                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
-                i++;
-                if (i === messageText.length) {
-                    clearInterval(timer);
-                }
-            }, delay);
-        }
-
         // Listen for new messages
         messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
             var chatBox = document.getElementById('chat-box');
             chatBox.innerHTML = ''; // Clear chat box
             snapshot.forEach(function(doc) {
                 var message = doc.data();
-                typeMessage(message.text, chatBox);
+                var messageElement = document.createElement('div');
+                messageElement.className = 'message'; // Add class for styling
+                chatBox.appendChild(messageElement);
+
+                // Use Typed.js to simulate typing effect
+                var typed = new Typed(messageElement, {
+                    strings: [message.text],
+                    typeSpeed: 50, // Speed of typing in milliseconds
+                    showCursor: false // Hide the cursor
+                });
             });
         });
 

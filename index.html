@@ -126,6 +126,13 @@
                 if (change.type === 'added') {
                     var message = change.doc.data();
                     appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+
+                    // Schedule deletion after 10 seconds
+                    setTimeout(function() {
+                        messagesRef.doc(change.doc.id).delete().catch(function(error) {
+                            console.error("Error deleting message:", error);
+                        });
+                    }, 10000); // 10 seconds in milliseconds
                 }
             });
         });
@@ -142,15 +149,10 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         uid: auth.currentUser.uid // Include uid in message data
                     }).then(function(docRef) {
-                        // Schedule deletion after 10 seconds
-                        setTimeout(function() {
-                            docRef.delete();
-                        }, 10000); // 10 seconds in milliseconds
+                        messageInput.value = ''; // Clear input
                     }).catch(function(error) {
                         console.error("Error adding message: ", error);
                     });
-
-                    messageInput.value = ''; // Clear input
                 }
             }
         });

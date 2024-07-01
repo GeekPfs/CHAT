@@ -41,6 +41,10 @@
             background-color: #000;
             color: lime;
             margin-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+        #chat-box::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
         }
         .message {
             margin-bottom: 5px;

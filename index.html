@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <!-- Typed.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
     <style>
@@ -98,6 +99,7 @@
         // Initialize services
         var auth = firebase.auth();
         var db = firebase.firestore();
+        var rtdb = firebase.database();
 
         // Authenticate anonymously
         auth.signInAnonymously().catch(function(error) {
@@ -108,27 +110,31 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 var uid = user.uid;
-                var presenceRef = db.collection('presence').doc(uid);
-                var onlineUsersRef = db.collection('presence');
+                var userStatusDatabaseRef = rtdb.ref('/status/' + uid);
 
                 // Set presence on connection
                 var isOfflineForDatabase = {
                     state: 'offline',
-                    last_changed: firebase.firestore.FieldValue.serverTimestamp(),
+                    last_changed: firebase.database.ServerValue.TIMESTAMP,
                 };
 
                 var isOnlineForDatabase = {
                     state: 'online',
-                    last_changed: firebase.firestore.FieldValue.serverTimestamp(),
+                    last_changed: firebase.database.ServerValue.TIMESTAMP,
                 };
 
-                // Set online status and handle disconnection
-                presenceRef.set(isOnlineForDatabase);
-                presenceRef.onDisconnect().set(isOfflineForDatabase);
+                rtdb.ref('.info/connected').on('value', function(snapshot) {
+                    if (snapshot.val() == false) {
+                        return;
+                    }
+                    userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(function() {
+                        userStatusDatabaseRef.set(isOnlineForDatabase);
+                    });
+                });
 
                 // Update online users count
-                onlineUsersRef.where('state', '==', 'online').onSnapshot(snapshot => {
-                    document.getElementById('online-count').textContent = snapshot.size;
+                rtdb.ref('/status').orderByChild('state').equalTo('online').on('value', function(snapshot) {
+                    document.getElementById('online-count').textContent = snapshot.numChildren();
                 });
 
                 // Reference to the chat messages collection

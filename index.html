@@ -60,22 +60,11 @@
 </head>
 <body>
     <h1>
-        ;           
-        :          ED.         
-       t#,         E#Wi        
-      ;##W.    t   E###G.      
-     :#L:WE    Ej  E#fD#W;     
-t      .DD.  .KG  ,#D   E#, E#t t##L    
-EK:   ,WK.   EE    ;#f  E#t E#t  .E#K,  
-E#t  i#D    f#.     t#i E#t E#t    j##f 
-E#t j#f     :#G     GK  E#t E#t    :E#K:
-E#tL#i       ;#L   LW.  E#t E#t   t##L  
-E#WW,         t#f f#:   E#t E#t .D#W;   
-E#K:           f#D#;    E#t E#tiW#G.    
-ED.             G#t     E#t E#K##i      
-t                t      E#t E##D.       
-                     ,;. E#t         
-                         L:          
+  _  _ ____ _ ___  
+|  | |  | | |  \ 
+ \/  |__| | |__/ 
+
+        
     </h1>
     <div id="chat-box"></div>
     <input type="text" id="message-input" placeholder="Type a message and press Enter...">
@@ -118,8 +107,14 @@ t                t      E#t E##D.
             var messageElement = document.createElement('div');
             messageElement.className = 'message';
             messageElement.style.color = getColorFromUid(uid); // Set text color based on uid
-            messageElement.textContent = messageText; // Set message text
             chatBox.appendChild(messageElement);
+
+            // Use Typed.js for typing animation
+            var typed = new Typed(messageElement, {
+                strings: [messageText],
+                typeSpeed: 50, // Speed of typing in milliseconds
+                showCursor: false // Hide the cursor
+            });
 
             // Scroll to bottom of chat box
             chatBox.scrollTop = chatBox.scrollHeight;

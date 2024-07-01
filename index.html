@@ -63,8 +63,6 @@
   _  _ ____ _ ___  
 |  | |  | | |  \ 
  \/  |__| | |__/ 
-
-        
     </h1>
     <div id="chat-box"></div>
     <input type="text" id="message-input" placeholder="Type a message and press Enter...">
@@ -92,7 +90,7 @@
             console.error("Error signing in anonymously:", error);
         });
 
-        // Reference to the chat messages collection
+        // Default reference to the chat messages collection
         var messagesRef = db.collection('messages');
 
         // Function to generate a color based on uid
@@ -120,22 +118,20 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Listen for new messages
-        messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
-            snapshot.docChanges().forEach(function(change) {
-                if (change.type === 'added') {
-                    var message = change.doc.data();
-                    appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
-
-                    // Schedule deletion after 10 seconds
-                    setTimeout(function() {
-                        messagesRef.doc(change.doc.id).delete().catch(function(error) {
-                            console.error("Error deleting message:", error);
-                        });
-                    }, 10000); // 10 seconds in milliseconds
-                }
+        // Function to listen for new messages
+        function listenForMessages() {
+            messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
+                snapshot.docChanges().forEach(function(change) {
+                    if (change.type === 'added') {
+                        var message = change.doc.data();
+                        appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+                    }
+                });
             });
-        });
+        }
+
+        // Listen for new messages in the default collection
+        listenForMessages();
 
         // Send a new message on Enter key press
         document.getElementById('message-input').addEventListener('keypress', function(event) {
@@ -143,16 +139,23 @@
                 var messageInput = document.getElementById('message-input');
                 var text = messageInput.value.trim();
                 if (text) {
-                    // Add message with uid
-                    messagesRef.add({
-                        text: text,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        uid: auth.currentUser.uid // Include uid in message data
-                    }).then(function(docRef) {
+                    if (text.startsWith('/enter ')) {
+                        var newSegment = text.split('/enter ')[1];
+                        messagesRef = db.collection(newSegment);
+                        document.getElementById('chat-box').innerHTML = ''; // Clear chat box
+                        listenForMessages(); // Start listening to new segment
                         messageInput.value = ''; // Clear input
-                    }).catch(function(error) {
-                        console.error("Error adding message: ", error);
-                    });
+                    } else {
+                        messagesRef.add({
+                            text: text,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            uid: auth.currentUser.uid // Include uid in message data
+                        }).then(function(docRef) {
+                            messageInput.value = ''; // Clear input
+                        }).catch(function(error) {
+                            console.error("Error adding message: ", error);
+                        });
+                    }
                 }
             }
         });

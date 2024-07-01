@@ -102,7 +102,9 @@
         // Function to generate a color based on uid
         function getColorFromUid(uid) {
             var hue = parseInt(uid.substr(0, 8), 16) % 360; // Convert first 8 characters of UID to a hue value (0-360)
-            return 'hsl(' + hue + ', 70%, 50%)'; // Return an HSL color string
+            var color = 'hsl(' + hue + ', 70%, 50%)'; // Return an HSL color string
+            console.log('UID:', uid, 'Color:', color); // Log UID and color to verify
+            return color;
         }
 
         // Function to append a new message with typing animation
@@ -135,7 +137,6 @@
                 snapshot.docChanges().forEach(function(change) {
                     if (change.type === 'added') {
                         var message = change.doc.data();
-                        console.log('Message UID:', message.uid); // Log UID to verify uniqueness
                         appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
 
                         // Delete message after 5 seconds if in the "messages" collection

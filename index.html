@@ -101,7 +101,8 @@
 
         // Function to generate a color based on uid
         function getColorFromUid(uid) {
-            var hue = parseInt(uid.substr(0, 8), 16) % 360; // Convert first 8 characters of UID to a hue value (0-360)
+            // Convert the full UID to an integer, and use it to generate a hue value (0-360)
+            var hue = (parseInt(uid.replace(/\D/g, ''), 10) % 360);
             var color = 'hsl(' + hue + ', 70%, 50%)'; // Return an HSL color string
             console.log('UID:', uid, 'Color:', color); // Log UID and color to verify
             return color;

@@ -96,7 +96,7 @@
             console.error("Error signing in anonymously:", error);
         });
 
-        // Reference to the initial chat messages collection
+        // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
         var chatBox = document.getElementById('chat-box');
 
@@ -126,20 +126,13 @@
 
         // Listen for new messages
         function listenForMessages() {
-            // Unsubscribe from previous collection
-            if (messagesRef && typeof messagesRef.onSnapshot === 'function') {
-                messagesRef.onSnapshot(() => {}); // unsubscribe
-            }
-
-            // Listen to the new collection
             messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
-                chatBox.innerHTML = ''; // Clear chat box for new collection
                 snapshot.docChanges().forEach(function(change) {
                     if (change.type === 'added') {
                         var message = change.doc.data();
                         appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
 
-                        // Delete message after 5 seconds if in the current collection
+                        // Delete message after 5 seconds if in the "messages" collection
                         if (messagesRef.id === 'messages') {
                             setTimeout(function() {
                                 messagesRef.doc(change.doc.id).delete().catch(function(error) {

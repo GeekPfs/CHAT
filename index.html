@@ -24,6 +24,15 @@
         }
         #message {
             width: 240px;
+            margin-bottom: 10px;
+        }
+        #sendButton {
+            width: 100px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        #sendButton:hover {
+            background-color: #f0f0f0;
         }
         #chat div {
             padding: 5px;
@@ -34,7 +43,7 @@
 <body>
     <div id="chat"></div>
     <input type="text" id="message" placeholder="Digite sua mensagem aqui...">
-    <button onclick="sendMessage()">Enviar</button>
+    <button id="sendButton">Enviar</button>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
@@ -43,13 +52,13 @@
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
-            authDomain: "chat-8823c.firebaseapp.com",
-            projectId: "chat-8823c",
-            storageBucket: "chat-8823c.appspot.com",
-            messagingSenderId: "355149222657",
-            appId: "1:355149222657:web:90c4d59a49c35a84900100",
-            databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com"
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_AUTH_DOMAIN",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_STORAGE_BUCKET",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID",
+            databaseURL: "https://SEU_PROJECT_ID.firebaseio.com"
         };
 
         // Inicializa o Firebase
@@ -57,28 +66,41 @@
         const database = firebase.database();
 
         const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('sendButton');
 
         // Função para enviar mensagem
         function sendMessage() {
-            const messageInput = document.getElementById('message');
-            const message = messageInput.value;
-            if (message) {
-                firebase.database().ref('messages').push().set({
-                    "message": message
+            const message = messageInput.value.trim();
+            if (message !== '') {
+                firebase.database().ref('messages').push({
+                    message: message
                 }).then(() => {
                     console.log('Mensagem enviada com sucesso');
+                    messageInput.value = '';
                 }).catch((error) => {
                     console.error('Erro ao enviar mensagem:', error);
                 });
-                messageInput.value = '';
             }
         }
 
         // Monitora novas mensagens no banco de dados
         firebase.database().ref('messages').on('child_added', function(snapshot) {
+            const message = snapshot.val().message;
             const newMessage = document.createElement('div');
-            newMessage.textContent = snapshot.val().message;
+            newMessage.textContent = message;
             chat.appendChild(newMessage);
+            chat.scrollTop = chat.scrollHeight; // Rolagem automática para a última mensagem
+        });
+
+        // Event listener para o botão de enviar
+        sendButton.addEventListener('click', sendMessage);
+
+        // Event listener para o pressionar da tecla Enter no campo de mensagem
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
     </script>
 </body>

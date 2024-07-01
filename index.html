@@ -41,25 +41,13 @@
             color: lime;
             border: 1px solid lime;
         }
-        #send-button {
-            padding: 5px 10px;
-            font-family: monospace;
-            background-color: lime;
-            color: black;
-            border: none;
-            cursor: pointer;
-        }
-        #send-button:hover {
-            background-color: green;
-        }
     </style>
 </head>
 <body>
     <h1>Chat</h1>
     <div id="chat-box"></div>
-    <input type="text" id="message-input" placeholder="Type a message...">
-    <button id="send-button">Send</button>
-
+    <input type="text" id="message-input" placeholder="Type a message and press Enter...">
+    
     <script>
         // Your web app's Firebase configuration
         var firebaseConfig = {
@@ -114,16 +102,18 @@
             });
         });
 
-        // Send a new message
-        document.getElementById('send-button').addEventListener('click', function() {
-            var messageInput = document.getElementById('message-input');
-            var text = messageInput.value;
-            if (text.trim()) {
-                messagesRef.add({
-                    text: text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                messageInput.value = ''; // Clear input
+        // Send a new message on Enter key press
+        document.getElementById('message-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                var messageInput = document.getElementById('message-input');
+                var text = messageInput.value;
+                if (text.trim()) {
+                    messagesRef.add({
+                        text: text,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    messageInput.value = ''; // Clear input
+                }
             }
         });
     </script>

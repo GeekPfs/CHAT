@@ -156,9 +156,6 @@
                 if (text.startsWith('/enter ')) {
                     var newCollection = text.split(' ')[1];
                     if (newCollection) {
-                        // Stop listening to current messagesRef
-                        messagesRef.onSnapshot(null);
-
                         // Change the collection
                         messagesRef = db.collection(newCollection);
                         chatBox.innerHTML = ''; // Clear chat box

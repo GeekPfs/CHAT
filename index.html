@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Chat</title>
     <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
         body { font-family: Arial, sans-serif; }
         #chat-box { border: 1px solid #ccc; padding: 10px; width: 300px; height: 400px; overflow-y: scroll; }
@@ -22,46 +22,46 @@
 
     <script>
         // Your web app's Firebase configuration
-        const firebaseConfig = {
+        var firebaseConfig = {
             apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
-  authDomain: "chat-8823c.firebaseapp.com",
-  databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
-  projectId: "chat-8823c",
-  storageBucket: "chat-8823c.appspot.com",
-  messagingSenderId: "355149222657",
-  appId: "1:355149222657:web:90c4d59a49c35a84900100"
+            authDomain: "chat-8823c.firebaseapp.com",
+            databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
+            projectId: "chat-8823c",
+            storageBucket: "chat-8823c.appspot.com",
+            messagingSenderId: "355149222657",
+            appId: "1:355149222657:web:90c4d59a49c35a84900100"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
         // Initialize services
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        var auth = firebase.auth();
+        var db = firebase.firestore();
 
         // Authenticate anonymously
-        auth.signInAnonymously().catch(error => {
+        auth.signInAnonymously().catch(function(error) {
             console.error("Error signing in anonymously:", error);
         });
 
         // Reference to the chat messages collection
-        const messagesRef = db.collection('messages');
+        var messagesRef = db.collection('messages');
 
         // Listen for new messages
-        messagesRef.orderBy('timestamp').onSnapshot(snapshot => {
-            const chatBox = document.getElementById('chat-box');
+        messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
+            var chatBox = document.getElementById('chat-box');
             chatBox.innerHTML = ''; // Clear chat box
-            snapshot.forEach(doc => {
-                const message = doc.data();
-                const messageElement = document.createElement('div');
+            snapshot.forEach(function(doc) {
+                var message = doc.data();
+                var messageElement = document.createElement('div');
                 messageElement.textContent = message.text;
                 chatBox.appendChild(messageElement);
             });
         });
 
         // Send a new message
-        document.getElementById('send-button').addEventListener('click', () => {
-            const messageInput = document.getElementById('message-input');
-            const text = messageInput.value;
+        document.getElementById('send-button').addEventListener('click', function() {
+            var messageInput = document.getElementById('message-input');
+            var text = messageInput.value;
             if (text.trim()) {
                 messagesRef.add({
                     text: text,

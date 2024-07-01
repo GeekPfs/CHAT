@@ -142,6 +142,8 @@
                         }
                     }
                 });
+            }, function(error) {
+                console.error("Error listening for messages:", error);
             });
         }
 

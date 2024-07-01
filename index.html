@@ -17,18 +17,16 @@
         }
         h1 {
             color: lime;
-            text-align: center;
         }
         #chat-box {
             border: 1px solid lime;
             padding: 10px;
-            width: 90%;
-            max-width: 300px;
+            width: 300px;
             height: 400px;
             overflow-y: scroll;
             background-color: black;
             color: lime;
-            margin: 10px auto;
+            margin-bottom: 10px;
         }
         #message-input {
             width: calc(100% - 22px);
@@ -37,7 +35,6 @@
             background-color: black;
             color: lime;
             border: 1px solid lime;
-            margin-right: 10px;
         }
         #send-button {
             padding: 5px 10px;
@@ -50,17 +47,31 @@
         #send-button:hover {
             background-color: green;
         }
-        @keyframes typing {
-            0% {
-                width: 0;
-            }
-            100% {
-                width: 100%;
-            }
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #111;
+            border: 1px solid lime;
+            border-radius: 5px;
+            color: lime;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            position: relative;
         }
-        .message-item {
-            animation: typing 1s forwards;
-            margin-bottom: 5px;
+        .message::after {
+            content: '';
+            display: block;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            border-left: 2px solid lime;
+            animation: typing 1s steps(40) forwards;
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
         }
     </style>
 </head>
@@ -73,7 +84,7 @@
     <script>
         // Your web app's Firebase configuration
         var firebaseConfig = {
-            apiKey: "sua-api-key",
+            apiKey: "Sua chave API",
             authDomain: "chat-8823c.firebaseapp.com",
             databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
             projectId: "chat-8823c",
@@ -99,16 +110,15 @@
         // Listen for new messages
         messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
             var chatBox = document.getElementById('chat-box');
-            snapshot.docChanges().forEach(function(change) {
-                if (change.type === "added") {
-                    var message = change.doc.data();
-                    var messageElement = document.createElement('div');
-                    messageElement.textContent = message.text;
-                    messageElement.classList.add('message-item');
-                    chatBox.appendChild(messageElement);
-                    // Scroll to bottom
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }
+            chatBox.innerHTML = ''; // Clear chat box
+            snapshot.forEach(function(doc) {
+                var message = doc.data();
+                var messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.textContent = message.text;
+                chatBox.appendChild(messageElement);
+                // Scroll to bottom of chat box
+                chatBox.scrollTop = chatBox.scrollHeight;
             });
         });
 

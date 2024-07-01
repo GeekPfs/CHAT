@@ -1,69 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat Simples</title>
-  <!-- Adicione o Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
-  <!-- Estilos opcionais -->
-  <style>
-    #messages {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
-    #messages li {
-      padding: 8px;
-      margin-bottom: 8px;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-      width: 80%;
-      word-wrap: break-word;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chat-box { border: 1px solid #ccc; padding: 10px; width: 300px; height: 400px; overflow-y: scroll; }
+        #message-input { width: calc(100% - 22px); }
+    </style>
 </head>
 <body>
-  <h2>Chat Simples</h2>
-  <ul id="messages"></ul>
-  <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
-  <button onclick="sendMessage()">Enviar</button>
+    <h1>Chat</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="message-input" placeholder="Type a message...">
+    <button id="send-button">Send</button>
 
-  <!-- Configuração do Firebase -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
-      authDomain: "chat-8823c.firebaseapp.com",
-      projectId: "chat-8823c",
-      storageBucket: "chat-8823c.appspot.com",
-      messagingSenderId: "355149222657",
-      appId: "1:355149222657:web:90c4d59a49c35a84900100",
-      databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com"
-    };
-    
-    // Inicializa o Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const messagesRef = database.ref('messages');
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
+  authDomain: "chat-8823c.firebaseapp.com",
+  databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
+  projectId: "chat-8823c",
+  storageBucket: "chat-8823c.appspot.com",
+  messagingSenderId: "355149222657",
+  appId: "1:355149222657:web:90c4d59a49c35a84900100"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
 
-    function sendMessage() {
-      const messageInput = document.getElementById('messageInput');
-      const message = messageInput.value;
-      if (message.trim() !== '') {
-        messagesRef.push({
-          text: message
+        // Initialize services
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Authenticate anonymously
+        auth.signInAnonymously().catch(error => {
+            console.error("Error signing in anonymously:", error);
         });
-        messageInput.value = '';
-      }
-    }
 
-    messagesRef.on('child_added', snapshot => {
-      const message = snapshot.val();
-      const li = document.createElement('li');
-      li.innerText = message.text;
-      document.getElementById('messages').appendChild(li);
-    });
-  </script>
+        // Reference to the chat messages collection
+        const messagesRef = db.collection('messages');
+
+        // Listen for new messages
+        messagesRef.orderBy('timestamp').onSnapshot(snapshot => {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = ''; // Clear chat box
+            snapshot.forEach(doc => {
+                const message = doc.data();
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message.text;
+                chatBox.appendChild(messageElement);
+            });
+        });
+
+        // Send a new message
+        document.getElementById('send-button').addEventListener('click', () => {
+            const messageInput = document.getElementById('message-input');
+            const text = messageInput.value;
+            if (text.trim()) {
+                messagesRef.add({
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                messageInput.value = ''; // Clear input
+            }
+        });
+    </script>
 </body>
 </html>

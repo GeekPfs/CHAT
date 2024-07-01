@@ -99,6 +99,7 @@
         // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
         var chatBox = document.getElementById('chat-box');
+        var unsubscribe = null; // Store the listener unsubscribe function
 
         // Function to generate a color based on uid
         function getColorFromUid(uid) {
@@ -126,7 +127,13 @@
 
         // Listen for new messages
         function listenForMessages() {
-            messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
+            // Unsubscribe from previous listener if it exists
+            if (unsubscribe) {
+                unsubscribe();
+            }
+
+            // Start a new listener
+            unsubscribe = messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
                 snapshot.docChanges().forEach(function(change) {
                     if (change.type === 'added') {
                         var message = change.doc.data();

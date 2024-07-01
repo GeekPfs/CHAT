@@ -154,15 +154,18 @@
                 var messageInput = document.getElementById('message-input');
                 var text = messageInput.value.trim();
                 if (text.startsWith('/enter ')) {
-                    var newCollection = text.split(' ')[1];
-                    if (newCollection) {
-                        // Change the collection
-                        messagesRef = db.collection(newCollection);
-                        chatBox.innerHTML = ''; // Clear chat box
-                        listenForMessages(); // Start listening to the new collection
-                        messageInput.value = ''; // Clear input
-                    }
-                } else if (text) {
+    var newCollection = text.split(' ')[1];
+    if (newCollection) {
+        // Stop listening to current messagesRef
+        messagesRef.onSnapshot(null);
+
+        // Change the collection
+        messagesRef = db.collection(newCollection);
+        chatBox.innerHTML = ''; // Clear chat box
+        listenForMessages(); // Start listening to the new collection
+        messageInput.value = ''; // Clear input
+    }
+} else if (text) {
                     // Add message with uid
                     messagesRef.add({
                         text: text,

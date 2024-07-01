@@ -17,16 +17,18 @@
         }
         h1 {
             color: lime;
+            text-align: center;
         }
         #chat-box {
             border: 1px solid lime;
             padding: 10px;
-            width: 300px;
+            width: 90%;
+            max-width: 300px;
             height: 400px;
             overflow-y: scroll;
             background-color: black;
             color: lime;
-            margin-bottom: 10px;
+            margin: 10px auto;
         }
         #message-input {
             width: calc(100% - 22px);
@@ -35,6 +37,7 @@
             background-color: black;
             color: lime;
             border: 1px solid lime;
+            margin-right: 10px;
         }
         #send-button {
             padding: 5px 10px;
@@ -47,6 +50,18 @@
         #send-button:hover {
             background-color: green;
         }
+        @keyframes typing {
+            0% {
+                width: 0;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+        .message-item {
+            animation: typing 1s forwards;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -58,7 +73,7 @@
     <script>
         // Your web app's Firebase configuration
         var firebaseConfig = {
-            apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
+            apiKey: "sua-api-key",
             authDomain: "chat-8823c.firebaseapp.com",
             databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
             projectId: "chat-8823c",
@@ -84,12 +99,16 @@
         // Listen for new messages
         messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
             var chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML = ''; // Clear chat box
-            snapshot.forEach(function(doc) {
-                var message = doc.data();
-                var messageElement = document.createElement('div');
-                messageElement.textContent = message.text;
-                chatBox.appendChild(messageElement);
+            snapshot.docChanges().forEach(function(change) {
+                if (change.type === "added") {
+                    var message = change.doc.data();
+                    var messageElement = document.createElement('div');
+                    messageElement.textContent = message.text;
+                    messageElement.classList.add('message-item');
+                    chatBox.appendChild(messageElement);
+                    // Scroll to bottom
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
             });
         });
 

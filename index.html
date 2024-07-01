@@ -107,22 +107,24 @@
             var messageElement = document.createElement('div');
             messageElement.className = 'message';
             messageElement.style.color = getColorFromUid(uid); // Set text color based on uid
+            messageElement.textContent = messageText; // Set message text
             chatBox.appendChild(messageElement);
-
-            // Use Typed.js for typing animation
-            var typed = new Typed(messageElement, {
-                strings: [messageText],
-                typeSpeed: 50, // Speed of typing in milliseconds
-                showCursor: false // Hide the cursor
-            });
 
             // Scroll to bottom of chat box
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Delete message from DOM after 10 seconds
+            // Schedule deletion from Firebase after 10 seconds
             setTimeout(function() {
-                chatBox.removeChild(messageElement);
-            }, 10000); // 10000 milliseconds = 10 seconds
+                messageElement.remove(); // Remove from UI
+                // Find and delete from Firestore
+                messagesRef.where('text', '==', messageText).get().then(function(querySnapshot) {
+                    querySnapshot.forEach(function(doc) {
+                        doc.ref.delete();
+                    });
+                }).catch(function(error) {
+                    console.error("Error removing document: ", error);
+                });
+            }, 10000); // 10 seconds in milliseconds
         }
 
         // Listen for new messages
@@ -131,13 +133,6 @@
                 if (change.type === 'added') {
                     var message = change.doc.data();
                     appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
-
-                    // Delete message from database after 10 seconds
-                    setTimeout(function() {
-                        messagesRef.doc(change.doc.id).delete().catch(function(error) {
-                            console.error("Error deleting message:", error);
-                        });
-                    }, 10000); // 10000 milliseconds = 10 seconds
                 }
             });
         });
@@ -153,6 +148,11 @@
                         text: text,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         uid: auth.currentUser.uid // Include uid in message data
+                    }).then(function() {
+                        // Display the message immediately
+                        appendMessageWithAnimation(text, auth.currentUser.uid);
+                    }).catch(function(error) {
+                        console.error("Error adding document: ", error);
                     });
                     messageInput.value = ''; // Clear input
                 }

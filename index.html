@@ -12,16 +12,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
     <style>
         body {
-            font-family: monospace;
+            font-family: 'Arial', sans-serif;
             background-color: black;
             color: lime;
             padding: 20px;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            margin: 0;
         }
         h1 {
             color: lime;
@@ -31,21 +31,19 @@
             padding: 10px;
             width: 100%;
             max-width: 400px;
-            height: 60vh;
+            height: 300px;
             overflow-y: scroll;
             background-color: black;
             color: lime;
             margin-bottom: 10px;
-            box-sizing: border-box;
         }
         .message {
             margin-bottom: 5px;
-            word-wrap: break-word;
         }
         #message-input {
             width: 100%;
             padding: 10px;
-            font-family: monospace;
+            font-family: 'Arial', sans-serif;
             background-color: black;
             color: lime;
             border: 1px solid lime;
@@ -59,7 +57,6 @@
     <input type="text" id="message-input" placeholder="Type a message and press Enter...">
     
     <script>
-        // Your web app's Firebase configuration
         var firebaseConfig = {
             apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
             authDomain: "chat-8823c.firebaseapp.com",
@@ -69,63 +66,58 @@
             messagingSenderId: "355149222657",
             appId: "1:355149222657:web:90c4d59a49c35a84900100"
         };
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Initialize services
         var auth = firebase.auth();
         var db = firebase.firestore();
 
-        // Authenticate anonymously
         auth.signInAnonymously().catch(function(error) {
             console.error("Error signing in anonymously:", error);
         });
 
-        // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
 
-        // Function to generate a color based on uid
         function getColorFromUid(uid) {
-            var hue = parseInt(uid.substr(0, 8), 16) % 360; // Convert first 8 characters of UID to a hue value (0-360)
-            return 'hsl(' + hue + ', 70%, 50%)'; // Return an HSL color string
+            var hue = parseInt(uid.substr(0, 8), 16) % 360;
+            return 'hsl(' + hue + ', 70%, 50%)';
         }
 
-        // Function to append a new message with typing animation
         function appendMessageWithAnimation(messageText, uid) {
             var chatBox = document.getElementById('chat-box');
             var messageElement = document.createElement('div');
             messageElement.className = 'message';
-            messageElement.style.color = getColorFromUid(uid); // Set text color based on uid
-            messageElement.textContent = messageText; // Set message text
+            messageElement.style.color = getColorFromUid(uid);
             chatBox.appendChild(messageElement);
 
-            // Scroll to bottom of chat box
+            var typed = new Typed(messageElement, {
+                strings: [messageText],
+                typeSpeed: 50,
+                showCursor: false
+            });
+
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Listen for new messages
         messagesRef.orderBy('timestamp').onSnapshot(function(snapshot) {
             snapshot.docChanges().forEach(function(change) {
                 if (change.type === 'added') {
                     var message = change.doc.data();
-                    appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+                    appendMessageWithAnimation(message.text, message.uid);
                 }
             });
         });
 
-        // Send a new message on Enter key press
         document.getElementById('message-input').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 var messageInput = document.getElementById('message-input');
                 var text = messageInput.value;
                 if (text.trim()) {
-                    // Add message with uid
                     messagesRef.add({
                         text: text,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        uid: auth.currentUser.uid // Include uid in message data
+                        uid: auth.currentUser.uid
                     });
-                    messageInput.value = ''; // Clear input
+                    messageInput.value = '';
                 }
             }
         });

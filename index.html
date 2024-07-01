@@ -118,6 +118,11 @@
 
             // Scroll to bottom of chat box
             chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Delete message from DOM after 10 seconds
+            setTimeout(function() {
+                chatBox.removeChild(messageElement);
+            }, 10000); // 10000 milliseconds = 10 seconds
         }
 
         // Listen for new messages
@@ -126,6 +131,13 @@
                 if (change.type === 'added') {
                     var message = change.doc.data();
                     appendMessageWithAnimation(message.text, message.uid); // Pass uid to append function
+
+                    // Delete message from database after 10 seconds
+                    setTimeout(function() {
+                        messagesRef.doc(change.doc.id).delete().catch(function(error) {
+                            console.error("Error deleting message:", error);
+                        });
+                    }, 10000); // 10000 milliseconds = 10 seconds
                 }
             });
         });

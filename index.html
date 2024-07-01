@@ -27,11 +27,12 @@
             height: 400px;
             overflow-y: scroll;
             background-color: black;
-            color: lime;
             margin-bottom: 10px;
         }
         .message {
             margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 5px;
         }
         #message-input {
             width: calc(100% - 22px);
@@ -51,13 +52,13 @@
     <script>
         // Your web app's Firebase configuration
         var firebaseConfig = {
-            apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
-            authDomain: "chat-8823c.firebaseapp.com",
-            databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
-            projectId: "chat-8823c",
-            storageBucket: "chat-8823c.appspot.com",
-            messagingSenderId: "355149222657",
-            appId: "1:355149222657:web:90c4d59a49c35a84900100"
+    apiKey: "AIzaSyA8XnSUXlWANcMsKX0TNjoZKqfhVQnTKQE",
+    authDomain: "chat-8823c.firebaseapp.com",
+    databaseURL: "https://chat-8823c-default-rtdb.firebaseio.com",
+    projectId: "chat-8823c",
+    storageBucket: "chat-8823c.appspot.com",
+    messagingSenderId: "355149222657",
+    appId: "1:355149222657:web:90c4d59a49c35a84900100"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -65,6 +66,9 @@
         // Initialize services
         var auth = firebase.auth();
         var db = firebase.firestore();
+
+        // Generate a random color for this client
+        var randomColor = generateRandomColor();
 
         // Authenticate anonymously
         auth.signInAnonymously().catch(function(error) {
@@ -74,19 +78,24 @@
         // Reference to the chat messages collection
         var messagesRef = db.collection('messages');
 
+        // Function to generate a random color
+        function generateRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
         // Function to append a new message with typing animation
-        function appendMessageWithAnimation(messageText) {
+        function appendMessageWithAnimation(messageText, messageColor) {
             var chatBox = document.getElementById('chat-box');
             var messageElement = document.createElement('div');
             messageElement.className = 'message';
+            messageElement.style.backgroundColor = messageColor; // Set message background color
+            messageElement.textContent = messageText;
             chatBox.appendChild(messageElement);
-
-            // Use Typed.js to simulate typing effect
-            var typed = new Typed(messageElement, {
-                strings: [messageText],
-                typeSpeed: 50, // Speed of typing in milliseconds
-                showCursor: false // Hide the cursor
-            });
 
             // Scroll to bottom of chat box
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -97,7 +106,8 @@
             snapshot.docChanges().forEach(function(change) {
                 if (change.type === 'added') {
                     var message = change.doc.data();
-                    appendMessageWithAnimation(message.text);
+                    var messageColor = message.color || randomColor; // Use message color if available, otherwise use randomColor
+                    appendMessageWithAnimation(message.text, messageColor);
                 }
             });
         });
@@ -110,7 +120,8 @@
                 if (text.trim()) {
                     messagesRef.add({
                         text: text,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        color: randomColor // Store client's color with message
                     });
                     messageInput.value = ''; // Clear input
                 }
